@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="es" id="htmlRoot">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Sala de Diapositivas · Tiempo Real</title>
+    <meta name="theme-color" content="#1e293b" id="themeColor" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+    <!-- ============================================================
+         PANTALLA DE INICIO (LANDING)
+         ============================================================ -->
+    <div id="landing">
+        <!-- Botón de modo oscuro -->
+        <button id="themeToggleLanding" class="theme-toggle-landing" title="Alternar tema">🌙</button>
+
+        <div class="landing-icon">📽️</div>
+        <h1>Sala de Diapositivas</h1>
+        <p class="landing-subtitle">
+            Comparte diapositivas con tu audiencia en <strong>tiempo real</strong>
+        </p>
+        <p class="landing-description">
+            Crea tu propia sala con un código único y compártelo, o únete a una sala existente con su contraseña.
+        </p>
+
+        <div class="btn-group">
+            <button class="btn btn-primary" id="btnCreateRoom">
+                <span class="btn-icon">🆕</span>
+                CREAR NUEVA SALA
+                <span class="btn-badge">Anfitrión</span>
+            </button>
+            <button class="btn btn-outline" id="btnJoinRoom">
+                <span class="btn-icon">🔑</span>
+                UNIRSE A UNA SALA
+                <span class="btn-badge">Participante</span>
+            </button>
+        </div>
+
+        <div class="landing-footer">
+            <p class="landing-info">
+                <span class="info-icon">🏠</span>
+                <strong>Salas ilimitadas</strong> con código personalizado
+            </p>
+            <p class="landing-info">
+                <span class="info-icon">👥</span>
+                Máximo <strong>10 participantes</strong> por sala
+            </p>
+            <p class="landing-info">
+                <span class="info-icon">🔒</span>
+                <strong>Contraseña</strong> para cada sala
+            </p>
+            <p class="landing-info">
+                <span class="info-icon">💬</span>
+                <strong>Chat grupal y privado</strong> en tiempo real
+            </p>
+            <p class="landing-version">v2.0.0 · En tiempo real con Socket.IO</p>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         OVERLAY: CREAR SALA
+         ============================================================ -->
+    <div id="createRoomOverlay" class="modal-overlay">
+        <div class="modal-card">
+            <button class="modal-close" id="createRoomClose" title="Cerrar">✕</button>
+            
+            <div class="modal-header">
+                <div class="modal-icon">🆕</div>
+                <h2>Crear nueva sala</h2>
+                <p>Configura tu sala y compártela con quien quieras</p>
+            </div>
+
+            <div class="modal-body">
+                <!-- Nombre del anfitrión -->
+                <div class="form-group">
+                    <label for="createHostName">
+                        <span class="label-icon">👤</span>
+                        Tu nombre (anfitrión)
+                    </label>
+                    <input 
+                        type="text" 
+                        id="createHostName" 
+                        class="form-input" 
+                        placeholder="Ej: Carlos" 
+                        maxlength="20"
+                        autocomplete="off"
+                    />
+                </div>
+
+                <!-- ID de la sala -->
+                <div class="form-group">
+                    <label for="createRoomId">
+                        <span class="label-icon">🏷️</span>
+                        ID de la sala
+                    </label>
+                    <input 
+                        type="text" 
+                        id="createRoomId" 
+                        class="form-input" 
+                        placeholder="Ej: reunion-2024" 
+                        maxlength="20"
+                        autocomplete="off"
+                    />
+                    <span class="form-hint">💡 Solo letras, números, guiones (-) y guiones bajos (_)</span>
+                    <div class="form-status" id="createRoomIdStatus"></div>
+                </div>
+
+                <!-- Nombre de la sala -->
+                <div class="form-group">
+                    <label for="createRoomName">
+                        <span class="label-icon">📝</span>
+                        Nombre de la sala
+                    </label>
+                    <input 
+                        type="text" 
+                        id="createRoomName" 
+                        class="form-input" 
+                        placeholder="Ej: Reunión de equipo" 
+                        maxlength="40"
+                        autocomplete="off"
+                    />
+                    <span class="form-hint">Este nombre lo verán todos los participantes</span>
+                </div>
+
+                <!-- Contraseña -->
+                <div class="form-group">
+                    <label for="createPassword">
+                        <span class="label-icon">🔒</span>
+                        Contraseña
+                    </label>
+                    <div class="password-wrapper">
+                        <input 
+                            type="password" 
+                            id="createPassword" 
+                            class="form-input" 
+                            placeholder="Mínimo 4 caracteres" 
+                            maxlength="30"
+                            autocomplete="new-password"
+                        />
+                        <button type="button" class="password-toggle" data-target="createPassword" title="Mostrar/ocultar">
+                            👁️
+                        </button>
+                    </div>
+                    <span class="form-hint">Los participantes necesitarán esta contraseña para unirse</span>
+                </div>
+
+                <div class="form-error" id="createRoomError"></div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-cancel" id="createRoomCancel">Cancelar</button>
+                <button class="btn btn-primary" id="createRoomSubmit">
+                    <span>🆕</span>
+                    Crear sala
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         OVERLAY: UNIRSE A SALA
+         ============================================================ -->
+    <div id="joinRoomOverlay" class="modal-overlay">
+        <div class="modal-card">
+            <button class="modal-close" id="joinRoomClose" title="Cerrar">✕</button>
+            
+            <div class="modal-header">
+                <div class="modal-icon">🔑</div>
+                <h2>Unirse a una sala</h2>
+                <p>Ingresa el código y contraseña de la sala</p>
+            </div>
+
+            <div class="modal-body">
+                <!-- Nombre del participante -->
+                <div class="form-group">
+                    <label for="joinUserName">
+                        <span class="label-icon">👤</span>
+                        Tu nombre
+                    </label>
+                    <input 
+                        type="text" 
+                        id="joinUserName" 
+                        class="form-input" 
+                        placeholder="Ej: Juan" 
+                        maxlength="20"
+                        autocomplete="off"
+                    />
+                </div>
+
+                <!-- ID de la sala -->
+                <div class="form-group">
+                    <label for="joinRoomId">
+                        <span class="label-icon">🏷️</span>
+                        ID de la sala
+                    </label>
+                    <input 
+                        type="text" 
+                        id="joinRoomId" 
+                        class="form-input" 
+                        placeholder="Ej: reunion-2024" 
+                        maxlength="20"
+                        autocomplete="off"
+                    />
+                    <span class="form-hint">💡 Pídele el código al anfitrión</span>
+                    <div class="form-status" id="joinRoomIdStatus"></div>
+                </div>
+
+                <!-- Contraseña -->
+                <div class="form-group">
+                    <label for="joinPassword">
+                        <span class="label-icon">🔒</span>
+                        Contraseña
+                    </label>
+                    <div class="password-wrapper">
+                        <input 
+                            type="password" 
+                            id="joinPassword" 
+                            class="form-input" 
+                            placeholder="Contraseña de la sala" 
+                            maxlength="30"
+                            autocomplete="current-password"
+                        />
+                        <button type="button" class="password-toggle" data-target="joinPassword" title="Mostrar/ocultar">
+                            👁️
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-error" id="joinRoomError"></div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-cancel" id="joinRoomCancel">Cancelar</button>
+                <button class="btn btn-primary" id="joinRoomSubmit">
+                    <span>🔑</span>
+                    Unirse a sala
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         OVERLAY DE CARGA (Mientras crea/se une)
+         ============================================================ -->
+    <div id="loadingOverlay" class="modal-overlay">
+        <div class="loading-card">
+            <div class="loading-spinner"></div>
+            <p id="loadingText">Creando sala...</p>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         CONTENEDOR PRINCIPAL DE LA APLICACIÓN
+         ============================================================ -->
+    <div id="appContainer" class="app-container">
+
+        <!-- HEADER -->
+        <header class="app-header">
+            <div class="header-left">
+                <span class="header-logo">📽️</span>
+                <div class="header-info">
+                    <h2 id="appTitle">Panel de control</h2>
+                    <span id="appSubtitle" class="header-subtitle">Sala: —</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <button id="themeToggleApp" class="theme-toggle" title="Alternar tema">🌙</button>
+                <span id="roleBadge" class="user-badge">👤 Anfitrión</span>
+                <button class="btn-back" id="btnExit">
+                    <span class="btn-back-icon">✕</span>
+                    Salir
+                </button>
+            </div>
+        </header>
+
+        <!-- ============================================================
+             PANEL DE INFO DE LA SALA (visible para el anfitrión)
+             ============================================================ -->
+        <div id="roomInfoPanel" class="room-info-panel">
+            <div class="room-info-row">
+                <div class="room-info-item">
+                    <span class="room-info-label">🏷️ Código de sala:</span>
+                    <span class="room-info-value" id="roomInfoCode">—</span>
+                    <button class="room-info-btn" id="copyRoomCodeBtn" title="Copiar código">📋</button>
+                </div>
+                <div class="room-info-item">
+                    <span class="room-info-label">🔒 Contraseña:</span>
+                    <span class="room-info-value password" id="roomInfoPassword">—</span>
+                    <button class="room-info-btn" id="toggleRoomPasswordBtn" title="Mostrar/ocultar contraseña">👁️</button>
+                </div>
+            </div>
+            <div class="room-info-actions">
+                <button class="room-action-btn" id="copyRoomLinkBtn">
+                    <span>🔗</span>
+                    Copiar enlace de invitación
+                </button>
+                <button class="room-action-btn danger" id="closeRoomBtn">
+                    <span>🚪</span>
+                    Cerrar sala
+                </button>
+            </div>
+            <div class="room-info-hint">
+                💡 Comparte el código y la contraseña con los participantes
+            </div>
+        </div>
+
+        <!-- ============================================================
+             DASHBOARD - VISTA DE ANFITRIÓN
+             ============================================================ -->
+        <div id="hostDashboard" class="dashboard">
+
+            <!-- SECCIÓN DE DIAPOSITIVAS -->
+            <section class="slides-section">
+                <div class="section-header">
+                    <div class="section-title-wrapper">
+                        <span class="section-icon">📋</span>
+                        <h3 class="section-title">Diapositivas</h3>
+                        <span class="section-count" id="slideCount">0</span>
+                    </div>
+                    <button class="btn-add" id="addImagesBtn">
+                        <span class="btn-add-icon">+</span>
+                        Añadir imágenes
+                    </button>
+                </div>
+
+                <div id="slideGrid" class="slide-grid">
+                    <div class="empty-slides">
+                        <span class="empty-icon">🖼️</span>
+                        <p>No hay diapositivas</p>
+                        <span class="empty-hint">Haz clic en "Añadir imágenes" para comenzar</span>
+                    </div>
+                </div>
+
+                <input type="file" id="fileInput" accept="image/*" multiple style="display:none" />
+
+                <div class="slides-footer">
+                    <span class="footer-hint">💡 Arrastra una diapositiva sobre un usuario para enviarla</span>
+                </div>
+            </section>
+
+            <!-- SECCIÓN DE USUARIOS -->
+            <section class="users-section">
+                <div class="section-header">
+                    <div class="section-title-wrapper">
+                        <span class="section-icon">👥</span>
+                        <h3 class="section-title">Usuarios conectados</h3>
+                        <span class="section-count" id="userCount">0</span>
+                    </div>
+                    <span class="users-status" id="usersStatus">
+                        <span class="status-dot"></span>
+                        <span class="status-text">Conectados</span>
+                    </span>
+                </div>
+
+                <div id="userGrid" class="user-grid"></div>
+
+                <div class="users-footer">
+                    <span class="footer-hint">📌 Arrastra una diapositiva y suéltala sobre un usuario</span>
+                    <span class="footer-hint-mobile">📌 Toca y arrastra una diapositiva hacia un usuario</span>
+                </div>
+            </section>
+
+        </div>
+
+        <!-- ============================================================
+             VISTA DE PARTICIPANTE
+             ============================================================ -->
+        <div id="participantView" class="participant-view hidden">
+            <div class="participant-header">
+                <div class="participant-avatar">👤</div>
+                <div id="participantIdDisplay" class="participant-id">Usuario 0</div>
+                <span class="participant-status">🟢 Conectado</span>
+            </div>
+
+            <div id="participantContent" class="participant-content">
+                <div class="empty-state">
+                    <span class="empty-state-icon">🖼️</span>
+                    <h4>Esperando diapositiva...</h4>
+                    <p>El anfitrión compartirá una imagen contigo en cualquier momento</p>
+                </div>
+            </div>
+
+            <div class="participant-footer">
+                <span class="footer-hint">💡 Cuando recibas una imagen, podrás descargarla con el botón ⬇️</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ============================================================
+         BOTÓN FLOTANTE DE CHAT
+         ============================================================ -->
+    <button id="chatToggleBtn" class="chat-toggle-btn" title="Abrir chat">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 18C3.79086 18 2 16.2091 2 14C2 12.0929 3.33457 10.4949 5.12686 10.0955C5.04374 9.74181 5 9.37481 5 9C5 6.23858 7.23858 4 10 4C12.2587 4 14.1697 5.49935 14.7845 7.54706C15.1709 7.51696 15.5629 7.5 15.9583 7.5C19.8511 7.5 23 10.6516 23 14.5C23 18.3484 19.8511 21.5 15.9583 21.5H6V18Z" 
+                  stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="9" cy="14" r="1.2" fill="currentColor"/>
+            <circle cx="13" cy="14" r="1.2" fill="currentColor"/>
+            <circle cx="17" cy="14" r="1.2" fill="currentColor"/>
+        </svg>
+        <span id="chatBadge" class="chat-badge" style="display:none;">0</span>
+    </button>
+
+    <!-- ============================================================
+         PANEL DE CHAT
+         ============================================================ -->
+    <div id="chatPanel" class="chat-panel hidden">
+        <div class="chat-header">
+            <div class="chat-header-left">
+                <span class="chat-header-icon">💬</span>
+                <h3 id="chatTitle">Chat grupal</h3>
+            </div>
+            <button id="chatCloseBtn" class="chat-close-btn" title="Cerrar chat">✕</button>
+        </div>
+
+        <!-- SELECTOR DE DESTINATARIO -->
+        <div class="chat-target-selector">
+            <label for="chatTargetSelect" class="chat-target-label">Enviar a:</label>
+            <select id="chatTargetSelect" class="chat-target-select">
+                <option value="group">🌐 Todos (Grupal)</option>
+            </select>
+        </div>
+
+        <div id="chatMessages" class="chat-messages">
+            <div class="chat-welcome">
+                <span class="chat-welcome-icon">👋</span>
+                <p>¡Bienvenido al chat!</p>
+                <span class="chat-welcome-hint">Puedes escribir mensajes grupales o privados</span>
+            </div>
+        </div>
+
+        <div class="chat-input-container">
+            <input 
+                type="text" 
+                id="chatInput" 
+                class="chat-input" 
+                placeholder="Escribe un mensaje..." 
+                maxlength="500"
+                autocomplete="off"
+            />
+            <button id="chatSendBtn" class="chat-send-btn" title="Enviar (Enter)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" 
+                          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         SCRIPTS
+         ============================================================ -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js"></script>
+
+</body>
+</html>
